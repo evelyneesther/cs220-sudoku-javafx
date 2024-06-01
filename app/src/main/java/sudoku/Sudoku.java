@@ -28,7 +28,6 @@ public class Sudoku extends Application
     private TextField[][] textFields = new TextField[SIZE][SIZE];
     private int width = 800;
     private int height = 800;
-    private boolean updatingBoard = false;
 
     @Override
     public void start(Stage primaryStage) throws Exception
@@ -50,7 +49,7 @@ public class Sudoku extends Application
             {
                 textFields[row][col] = new TextField();
                 TextField textField = textFields[row][col];
-                
+
                 // setting ID so that we can look up the text field by row and col
                 // IDs are #3-4 for the 4th row and 5th column (start index at 0)
                 textField.setId(row + "-" + col);
@@ -61,11 +60,11 @@ public class Sudoku extends Application
                     // we need a special border to highlight the borrom right
                     textField.getStyleClass().add("bottom-right-border");
                 }
-                else if (col % 3 == 2) { 
+                else if (col % 3 == 2) {
                     // Thick right border
                     textField.getStyleClass().add("right-border");
                 }
-                else if (row % 3 == 2) { 
+                else if (row % 3 == 2) {
                     // Thick bottom border
                     textField.getStyleClass().add("bottom-border");
                 }
@@ -80,7 +79,7 @@ public class Sudoku extends Application
                     }
                     else
                     {
-                        // otherwise 
+                        // otherwise
                         textField.getStyleClass().add("text-field-selected");
                     }
                 });
@@ -111,12 +110,6 @@ public class Sudoku extends Application
                 // using a listener instead of a KEY_TYPED event handler
                 // KEY_TYPED requires the user to hit ENTER to trigger the event
                 textField.textProperty().addListener((observable, oldValue, newValue) -> {
-
-                    if (updatingBoard)
-                    {
-                        return;
-                    }
-
                     if (!newValue.matches("[1-9]?")) {
                         // restrict textField to only accept single digit numbers from 1 to 9
                         textField.setText(oldValue);
@@ -125,7 +118,7 @@ public class Sudoku extends Application
                     String[] parts = id.split("-");
                     int r = Integer.parseInt(parts[0]);
                     int c = Integer.parseInt(parts[1]);
-                    
+
                     if (newValue.length() > 0)
                     {
                         try
@@ -174,27 +167,26 @@ public class Sudoku extends Application
                 default:
                     System.out.println("you typed key: " + event.getCode());
                     break;
-                
+
             }
         });
 
         Scene scene = new Scene(root, width, height);
 
         URL styleURL = getClass().getResource("/style.css");
-		String stylesheet = styleURL.toExternalForm();
-		scene.getStylesheets().add(stylesheet);
+        String stylesheet = styleURL.toExternalForm();
+        scene.getStylesheets().add(stylesheet);
         primaryStage.setTitle("Sudoku");
         primaryStage.setScene(scene);
         primaryStage.show();
 
         primaryStage.setOnCloseRequest(event -> {
-        	System.out.println("oncloserequest");
+            System.out.println("oncloserequest");
         });
     }
 
     private void updateBoard()
     {
-        updatingBoard = true;
         for (int row = 0; row < SIZE; row++)
         {
             for (int col = 0; col < SIZE; col++)
@@ -211,30 +203,29 @@ public class Sudoku extends Application
                 }
             }
         }
-        updatingBoard = false;
     }
 
     private MenuBar createMenuBar(Stage primaryStage)
     {
         MenuBar menuBar = new MenuBar();
-    	menuBar.getStyleClass().add("menubar");
+        menuBar.getStyleClass().add("menubar");
 
         //
         // File Menu
         //
-    	Menu fileMenu = new Menu("File");
+        Menu fileMenu = new Menu("File");
 
         addMenuItem(fileMenu, "Load from file", () -> {
             System.out.println("Load from file");
             FileChooser fileChooser = new FileChooser();
             // XXX: this is a hack to get the file chooser to open in the right directory
             // we should probably have a better way to find this folder than a hard coded path
-			fileChooser.setInitialDirectory(new File("../puzzles"));
-			File sudokuFile = fileChooser.showOpenDialog(primaryStage);
+            fileChooser.setInitialDirectory(new File("../puzzles"));
+            File sudokuFile = fileChooser.showOpenDialog(primaryStage);
             if (sudokuFile != null)
             {
                 System.out.println("Selected file: " + sudokuFile.getName());
-                
+
                 try {
                     //TODO: loadBoard() method should throw an exception if the file is not a valid sudoku board
                     board = Board.loadBoard(new FileInputStream(sudokuFile));
@@ -242,12 +233,12 @@ public class Sudoku extends Application
                 } catch (Exception e) {
                     // pop up and error window
                     Alert alert = new Alert(AlertType.ERROR);
-    	            alert.setTitle("Unable to load sudoku board from file "+ sudokuFile.getName());
-    	            alert.setHeaderText(e.getMessage());
+                    alert.setTitle("Unable to load sudoku board from file "+ sudokuFile.getName());
+                    alert.setHeaderText(e.getMessage());
                     alert.setContentText(e.getMessage());
                     e.printStackTrace();
                     if (e.getCause() != null) e.getCause().printStackTrace();
-                    
+
                     alert.showAndWait();
                 }
             }
@@ -274,7 +265,7 @@ public class Sudoku extends Application
                 }
             }
         });
-        
+
         addMenuItem(fileMenu, "Print Board", () -> {
             // Debugging method that just prints the board
             Alert alert = new Alert(AlertType.INFORMATION);
@@ -336,8 +327,8 @@ public class Sudoku extends Application
         menuItem.setOnAction(event -> action.run());
         menu.getItems().add(menuItem);
     }
-        
-    public static void main(String[] args) 
+
+    public static void main(String[] args)
     {
         launch(args);
     }

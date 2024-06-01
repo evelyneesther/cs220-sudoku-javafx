@@ -14,9 +14,9 @@ public class Board
         board = new int[9][9];
     }
 
-    public static Board loadBoard(InputStream in)
+    public static sudoku.Board loadBoard(InputStream in)
     {
-        Board board = new Board();
+        sudoku.Board board = new sudoku.Board();
         Scanner scanner = new Scanner(in);
         for (int row = 0; row < 9; row++)
         {

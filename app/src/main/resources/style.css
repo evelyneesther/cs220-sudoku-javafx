@@ -57,6 +57,14 @@
     -fx-background-color: rgb(238, 148, 148);
 }
 
+.text-field-highlight-blue {
+    -fx-background-color: rgb(205, 255, 255);
+}
+
+.text-field-highlight-green {
+    -fx-background-color: rgb(204, 255, 204);
+}
+
 
 .grid-pane .right-border {
     -fx-border-color: black;
