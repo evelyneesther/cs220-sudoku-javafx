@@ -18,12 +18,20 @@ public class Board
     {
         sudoku.Board board = new sudoku.Board();
         Scanner scanner = new Scanner(in);
+        int i = 0;
         for (int row = 0; row < 9; row++)
         {
             for (int col = 0; col < 9; col++)
             {
-                board.setCell(row, col, scanner.nextInt());
+                i=scanner.nextInt();
+                if (i>9||i<0){
+                    throw new RuntimeException("Invalid Board");
+                }
+                board.setCell(row, col, i);
             }
+        }
+        if(scanner.hasNextInt()){
+            throw new RuntimeException("Invalid Board");
         }
         scanner.close();
         return board;
@@ -34,6 +42,9 @@ public class Board
         return value >= 1 && value <= 9 && getPossibleValues(row, col).contains(value);
     }
 
+    public void undoSetCell(int row, int col, int value){
+        board[row][col]=value;
+    }
     public void setCell(int row, int col, int value)
     {
         if (value < 0 || value > 9)
@@ -61,6 +72,10 @@ public class Board
     public Set<Integer> getPossibleValues(int row, int col)
     {
         Set<Integer> possibleValues = new HashSet<>();
+        if (board[row][col]!=0){
+            return possibleValues;
+        }
+
         for (int i = 1; i <= 9; i++)
         {
             possibleValues.add(i);

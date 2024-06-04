@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.*;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -28,6 +29,9 @@ public class Sudoku extends Application
     private TextField[][] textFields = new TextField[SIZE][SIZE];
     private int width = 800;
     private int height = 800;
+    private boolean hint=false;
+    private Stack<int[]> undoStack=new Stack<>();
+    private boolean easyMode=false;
 
     @Override
     public void start(Stage primaryStage) throws Exception
@@ -96,15 +100,30 @@ public class Sudoku extends Application
                 // RIGHT-CLICK handler
                 // add handler for when we RIGHT-CLICK a textfield
                 // to bring up a selection of possible values
+
+                int finalRow = row;
+                int finalCol = col;
                 textField.setOnContextMenuRequested(event -> {
                     // change the textfield background to red while keeping the rest of the css the same
                     textField.getStyleClass().add("text-field-highlight");
                     Alert alert = new Alert(AlertType.INFORMATION);
                     alert.setTitle("Possible values");
                     // TODO: show a list of possible values that can go in this square
-                    alert.setContentText("1 2 3 4 5 6 7 8 9");
+                    Set<Integer> vals=board.getPossibleValues(finalRow, finalCol);
+                    System.out.println(vals);
+                    alert.setContentText(vals.toString());
                     alert.showAndWait();
                     textField.getStyleClass().remove("text-field-highlight");
+                });
+
+                textField.setOnAction(event -> {
+                    Set<Integer> vals=board.getPossibleValues(finalRow, finalCol);
+                    if (vals.size()==1){
+                        textField.getStyleClass().add("text-field-highlight-green");
+                    }
+                    if (vals.isEmpty()){
+                        textField.getStyleClass().add("text-field-highlight");
+                    }
                 });
 
                 // using a listener instead of a KEY_TYPED event handler
@@ -125,9 +144,18 @@ public class Sudoku extends Application
                         {
                             System.out.printf("Setting cell %d, %d to %s\n", r, c, newValue);
                             int value = Integer.parseInt(newValue);
+                            int[] lastMove=new int[3];
+                            lastMove[0]=r;
+                            lastMove[1]=c;
+                            lastMove[2]=board.getCell(r,c);
+                            undoStack.push(lastMove);
                             board.setCell(r, c, value);
                             // remove the highlight when we set a value
                             textField.getStyleClass().remove("text-field-selected");
+                            textField.getStyleClass().remove("text-field-highlight-blue");
+                            textField.getStyleClass().remove("text-field-highlight-green");
+                            textField.getStyleClass().remove("text-field-highlight");
+
                         }
                         catch (NumberFormatException e)
                         {
@@ -135,6 +163,9 @@ public class Sudoku extends Application
                         }
                         catch (Exception e)
                         {
+                            if (easyMode){
+                                textField.getStyleClass().add("text-field-highlight");
+                            }
                             // TODO: if the value is not a possible value, catch the exception and show an alert
                             System.out.println("Invalid Value: " + newValue);
                         }
@@ -161,6 +192,9 @@ public class Sudoku extends Application
                         {
                             TextField textField = textFields[row][col];
                             textField.getStyleClass().remove("text-field-selected");
+                            textField.getStyleClass().remove("text-field-highlight-blue");
+                            textField.getStyleClass().remove("text-field-highlight-green");
+                            textField.getStyleClass().remove("text-field-highlight-red");
                         }
                     }
                     break;
@@ -255,6 +289,7 @@ public class Sudoku extends Application
                 System.out.println("Selected file: " + file.getName());
                 try {
                     //TODO: check if the file already exists, and ask the user if they want to overwrite
+                    //Windows already does that
                     writeToFile(file, board.toString());
                 } catch (Exception e) {
                     Alert alert = new Alert(AlertType.ERROR);
@@ -291,12 +326,26 @@ public class Sudoku extends Application
 
         addMenuItem(editMenu, "Undo", () -> {
             System.out.println("Undo");
-            //TODO: Undo the last move
+            int[] temp=undoStack.pop();
+            board.undoSetCell(temp[0],temp[1],temp[2]);
+            updateBoard();
         });
 
         addMenuItem(editMenu, "Show values entered", () -> {
             System.out.println("Show all the values we've entered since we loaded the board");
             //TODO: pop up a window showing all of the values we've entered
+            Stack<int[]> tempStack=new Stack<>();
+            int[] temp;
+            while (!undoStack.empty()){
+                temp=undoStack.pop();
+                TextField textField = textFields[temp[0]][temp[1]];
+                textField.getStyleClass().add("text-field-highlight-blue");
+                tempStack.push(temp);
+            }
+
+            while (!tempStack.empty()){
+                undoStack.push(tempStack.pop());
+            }
         });
 
         menuBar.getMenus().add(editMenu);
@@ -308,11 +357,22 @@ public class Sudoku extends Application
 
         addMenuItem(hintMenu, "Show hint", () -> {
             System.out.println("Show hint");
-            //TODO: highlight cell where only one legal value is possible
+            for (int row = 0; row < SIZE; row++)
+            {
+                for (int col = 0; col < SIZE; col++)
+                {
+                    TextField textField = textFields[row][col];
+                    if (board.getPossibleValues(row,col).size()==1){
+                        textField.getStyleClass().add("text-field-highlight-green");
+                    }
+                }
+            }
         });
-
+        addMenuItem(hintMenu, "Easy Mode", () -> {
+            System.out.println("Easy Mode Engaged");
+            easyMode=true;
+        });
         menuBar.getMenus().add(hintMenu);
-
         return menuBar;
     }
 
